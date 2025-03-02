@@ -1,12 +1,70 @@
-# Mantenibilidad Domain-Driven Design y Arquitectura Hexagonal
+# Mantenibilidad DDD y Arquitectura Hexagonal
 
-## Visión General
+
 
 Este proyecto implementa un microservicio de recolección de imágenes que permite obtener imágenes desde URLs, almacenarlas en disco y registrar sus metadatos en una base de datos SQLite. El sistema está diseñado siguiendo los principios de Domain-Driven Design (DDD) y Arquitectura Hexagonal (también conocida como Ports and Adapters).
 
-## Cumplimiento con Domain-Driven Design (DDD)
+## Cómo ejecutar el proyecto
 
-La arquitectura DDD se refleja en las siguientes características:
+1. **Instalar Poetry**: Asegúrate de tener Poetry instalado. Si no lo tienes, sigue las instrucciones en [https://python-poetry.org/](https://python-poetry.org/).
+2. **Clonar el repositorio**: Clona el repositorio del proyecto en tu máquina local.
+3. **Instalar dependencias**: Navega hasta la raíz del repositorio y ejecuta el siguiente comando para instalar las dependencias:
+```bash
+poetry install --no-root
+```
+
+## Probar el servidor HTTP
+
+1. **Iniciar el servidor**: Una vez completada la instalación, ejecuta el siguiente comando para iniciar el servidor en modo HTTP:
+   ```bash
+   poetry run python main.py --mode http
+   ```
+2. **Explorar los endpoints**: Accede a la interfaz de Swagger en [http://localhost:8000/docs#/](http://localhost:8000/docs#/) para ver y probar los diferentes endpoints disponibles.
+
+---
+
+## Probar el servidor gRPC
+
+1. **Iniciar el servidor**: Después de completar la instalación, ejecuta el siguiente comando para iniciar el servidor en modo gRPC:
+   ```bash
+   poetry run python main.py --mode grpc
+   ```
+2. **Probar con el cliente de demostración**: Puedes probar el servidor gRPC utilizando el cliente de demostración incluido en el proyecto. Ejecuta el siguiente comando para crear un registro de ejemplo:
+   ```bash
+   poetry run python -m app.images_collector.infrastructure.grpc.demo
+   ```
+3. **Probar con BloomRPC**:
+   - Descarga e instala BloomRPC desde [https://github.com/bloomrpc/bloomrpc/releases](https://github.com/bloomrpc/bloomrpc/releases).
+   - Abre BloomRPC y carga el archivo `.proto` ubicado en `app/images_collector/infrastructure/grpc/protos/images.proto`.
+   - Configura el servidor gRPC en BloomRPC con la dirección `127.0.0.1:8001`.
+   - Prueba los métodos disponibles con los siguientes cuerpos de ejemplo:
+
+   **CollectImage**:
+   ```json
+   {
+     "url": "https://httpbin.org/image/jpeg",
+     "file_name": "test_image.jpg"
+   }
+   ```
+
+   **GetAllImages**:
+   ```json
+   {}
+   ```
+
+   **GetImageById**:
+   ```json
+   {
+     "id": "[ID_CREACIÓN]"
+   }
+   ```
+
+### Notas adicionales:
+- Asegúrate de que el servidor esté en ejecución antes de probar los endpoints.
+- Si necesitas cambiar el puerto o la configuración del servidor, revisa el archivo de configuración en `app/infrastructure/settings/config.py`.
+
+
+## Cumplimiento con Domain-Driven Design (DDD)
 
 ### 1. Modelo de Dominio Claramente Definido
 
