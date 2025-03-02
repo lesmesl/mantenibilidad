@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package images;
+
+service ImageCollector {
+  rpc CollectImage (ImageRequest) returns (ImageResponse);
+  rpc GetAllImages (EmptyRequest) returns (ImagesResponse);
+  rpc GetImageById (ImageIdRequest) returns (ImageResponse);
+}
+
+message EmptyRequest {}
+
+message ImageIdRequest {
+  string id = 1;
+}
+
+message ImageRequest {
+  string url = 1;
+  string file_name = 2;
+}
+
+message ImageResponse {
+  string id = 1;
+  string url = 2;
+  string file_name = 3;
+  string content_type = 4;
+  int32 size = 5;
+  string created_at = 6;
+}
+
+message ImagesResponse {
+  repeated ImageResponse images = 1;
+}
