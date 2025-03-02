@@ -3,6 +3,8 @@ import grpc
 from concurrent import futures
 from typing import Optional
 
+from ..repositories.postgres_image_repository import PostgresImageRepository
+
 from ...application.dto.image_dto import ImageDTO
 from ...application.use_cases.image_collector import ImageCollectorUseCase
 from ..repositories.file_image_repository import FileImageRepository
@@ -18,6 +20,8 @@ class ImageCollectorServicer(images_pb2_grpc.ImageCollectorServicer):
         # Seleccionamos el tipo de repositorio según la configuración
         if settings.storage_type == "sqlite":
             self.repository = SQLiteImageRepository()
+        elif settings.storage_type == "postgres":
+            self.repository = PostgresImageRepository()
         else:
             self.repository = FileImageRepository()
         

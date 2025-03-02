@@ -17,11 +17,18 @@ class Settings(BaseSettings):
     grpc_host: str = "127.0.0.1"
     
     # Storage Settings
-    storage_type: Literal["file", "sqlite"] = "sqlite"
+    storage_type: Literal["file", "sqlite", "postgres"] = "sqlite"
     storage_path: str = "./storage"
     
     # SQLite Settings
     sqlite_db_path: str = "./storage/images.db"
+    
+    # PostgreSQL Settings
+    postgres_host: str = "localhost"
+    postgres_port: int = 5440
+    postgres_user: str = "postgres"
+    postgres_password: str = "postgres"
+    postgres_db: str = "images_db"
     
     model_config = SettingsConfigDict(
         env_file=".env", 

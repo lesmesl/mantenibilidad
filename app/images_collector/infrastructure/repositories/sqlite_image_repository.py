@@ -2,15 +2,14 @@ import aiosqlite
 import httpx
 import uuid
 import os
-import asyncio
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
+import contextlib
 
 from ...domain.models.image import Image
 from ...domain.ports.image_repository import ImageRepository
 from ..settings.config import settings
-
 
 class SQLiteImageRepository(ImageRepository):
     """Implementación del repositorio que guarda imágenes en SQLite."""
@@ -19,15 +18,24 @@ class SQLiteImageRepository(ImageRepository):
         self.db_path = settings.sqlite_db_path
         self.storage_path = Path(settings.storage_path)
         self._ensure_storage_dir()
-        
-        # Creamos la tabla de forma síncrona durante la inicialización
         self._init_db_sync()
+        print(f"Nuevo repositorio SQLite creado: {id(self)}")
+        
+    @contextlib.asynccontextmanager
+    async def _get_db_connection(self):
+        """Obtiene una conexión a la base de datos y la registra."""
+        connection = await aiosqlite.connect(self.db_path)
+        connection.row_factory = aiosqlite.Row
+        conn_id = id(connection)
+        
+        try:
+            yield connection
+        finally:
+            await connection.close()
     
     def _ensure_storage_dir(self):
         """Asegura que el directorio de almacenamiento exista."""
         self.storage_path.mkdir(parents=True, exist_ok=True)
-        
-        # También aseguramos que exista el directorio para la base de datos
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
     
     def _init_db_sync(self):
@@ -86,8 +94,8 @@ class SQLiteImageRepository(ImageRepository):
                 created_at=image.created_at
             )
             
-            # Guardar en la base de datos
-            async with aiosqlite.connect(self.db_path) as db:
+            # Guardar en la base de datos usando el connection manager
+            async with self._get_db_connection() as db:
                 await db.execute(
                     """
                     INSERT OR REPLACE INTO images (id, url, file_name, content_type, size, created_at, file_path)
@@ -115,8 +123,7 @@ class SQLiteImageRepository(ImageRepository):
     async def get_by_id(self, image_id: str) -> Optional[Image]:
         """Obtiene una imagen por su ID."""
         try:
-            async with aiosqlite.connect(self.db_path) as db:
-                db.row_factory = aiosqlite.Row
+            async with self._get_db_connection() as db:
                 cursor = await db.execute("SELECT * FROM images WHERE id = ?", (image_id,))
                 row = await cursor.fetchone()
                 
@@ -138,8 +145,7 @@ class SQLiteImageRepository(ImageRepository):
     async def get_all(self) -> List[Image]:
         """Obtiene todas las imágenes."""
         try:
-            async with aiosqlite.connect(self.db_path) as db:
-                db.row_factory = aiosqlite.Row
+            async with self._get_db_connection() as db:
                 cursor = await db.execute("SELECT * FROM images ORDER BY created_at DESC")
                 rows = await cursor.fetchall()
                 
