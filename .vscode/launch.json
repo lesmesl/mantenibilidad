@@ -1,0 +1,41 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Images Collector: HTTP Mode",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.main",
+            "args": ["--mode", "http"],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "python": "${command:python.interpreterPath}"
+        },
+        {
+            "name": "Images Collector: gRPC Mode",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.main",
+            "args": ["--mode", "grpc"],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "python": "${command:python.interpreterPath}"
+        }
+    ]
+}
