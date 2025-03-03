@@ -50,14 +50,33 @@ services:
   bookie:
     image: apachepulsar/pulsar:latest
     container_name: bookie
-    restart: on-failure
+    restart: always  # Cambiado de on-failure a always para mayor estabilidad
     networks:
       - app-network
     environment:
       - clusterName=cluster-a
       - zkServers=zookeeper:2181
       - metadataServiceUri=metadata-store:zk:zookeeper:2181
-      - advertisedAddress=bookie 
+      - advertisedAddress=bookie
+      # Parámetros de estabilidad para el bookie
+      - journalDirectories=/pulsar/data/bookkeeper/journal
+      - ledgerDirectories=/pulsar/data/bookkeeper/ledgers
+      - bookiePort=3181
+      - BOOKIE_MEM=-Xms512m -Xmx512m
+      - BOOKIE_GC=-XX:+UseG1GC
+      - dbStorage_writeCacheMaxSizeMb=256
+      - dbStorage_readAheadCacheMaxSizeMb=64
+      - journalMaxSizeMB=512
+      - diskUsageThreshold=0.95
+      - diskUsageWarnThreshold=0.90
+      - autoRecoveryDaemonEnabled=true
+      - journalSyncData=false  # Para mayor rendimiento en entornos de desarrollo
+      - bookkeeperClientTimeoutInSeconds=60
+      - bookkeeperClientHealthCheckEnabled=true
+      - bookkeeperClientQuarantineTimeMillis=1800000
+      - managedLedgerDefaultMarkDeleteRateLimit=0.1
+      - managedLedgerMaxEntriesPerLedger=5000
+      - managedLedgerMinLedgerRolloverTimeMinutes=10
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -65,12 +84,16 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./data/bookkeeper:/pulsar/data/bookkeeper
-    command: bash -c "bin/apply-config-from-env.py conf/bookkeeper.conf && exec bin/pulsar bookie"
     healthcheck:
       test: ["CMD", "bin/bookkeeper", "shell", "simpletest"]
-      interval: 20s
-      timeout: 5s
-      retries: 10
+      interval: 30s
+      timeout: 20s
+      retries: 15
+      start_period: 60s  # Dar más tiempo para inicializar
+    command: >
+      bash -c "mkdir -p /pulsar/data/bookkeeper/journal /pulsar/data/bookkeeper/ledgers && 
+              bin/apply-config-from-env.py conf/bookkeeper.conf && 
+              exec bin/pulsar bookie"
 
   # Start broker
   broker:
@@ -169,39 +192,6 @@ services:
       - HTTP_HOST=0.0.0.0
       - PYTHONUNBUFFERED=1
 
-  # gRPC Service
-  api-grpc:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: images-api-grpc
-    command: bash -c "sleep 30 && python -m app.main --mode grpc"
-    networks:
-      - app-network
-    depends_on:
-      broker:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./:/app
-      - ./storage:/app/storage
-    environment:
-      - STORAGE_TYPE=postgres
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=images_db
-      - PULSAR_SERVICE_URL=pulsar://broker:6650
-      - PULSAR_ENABLED=true
-      - PULSAR_IMAGE_TOPIC=persistent://public/default/eventos-suscripcion
-      - GRPC_PORT=8001
-      - GRPC_HOST=0.0.0.0
-      - PYTHONUNBUFFERED=1
-
   # Consumer Demo (opcional)
   consumer:
     build:
@@ -235,19 +225,3 @@ services:
       broker:
         condition: service_healthy
     restart: on-failure
-
-  pulsar-init-topics:
-    image: apachepulsar/pulsar:latest
-    container_name: pulsar-init-topics
-    networks:
-      - app-network
-    depends_on:
-      broker:
-        condition: service_healthy
-      zookeeper:
-        condition: service_healthy
-    volumes:
-      - ./init-topics.sh:/pulsar/init-topics.sh
-    command: ["bash", "/pulsar/init-topics.sh"]
-    restart: "no"  # Solo se ejecutará una vez
-          

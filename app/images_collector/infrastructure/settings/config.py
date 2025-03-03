@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     postgres_db: str = "images_db"
     
     # Pulsar Settings
-    pulsar_service_url: str = "pulsar://localhost:6650"
+    pulsar_service_url: str = "pulsar://broker:6650"
     pulsar_enabled: bool = True
     pulsar_image_topic: str = "persistent://public/default/eventos-suscripcion"
     
@@ -53,5 +53,7 @@ class Settings(BaseSettings):
         if not os.path.isabs(self.sqlite_db_path):
             self.sqlite_db_path = os.path.join(base_dir, self.sqlite_db_path)
 
-
 settings = Settings()
+print("test.. ",settings.pulsar_service_url)
+print("test.. ",settings.pulsar_service_url)
+
