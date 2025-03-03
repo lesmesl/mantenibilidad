@@ -129,7 +129,7 @@ services:
       - "6650:6650"
       - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/admin/v2/clusters/cluster-a"]
+      test: ["CMD", "curl", "-f", "http://broker:8080/admin/v2/clusters/cluster-a"]
       interval: 30s
       timeout: 10s
       retries: 5

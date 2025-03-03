@@ -137,8 +137,8 @@ def set_retention_policy(admin_url, namespace):
 def verify_pulsar():
     """Verifica la disponibilidad del broker Pulsar y el tópico."""
     # Configuración
-    service_url = os.environ.get("PULSAR_SERVICE_URL", "pulsar://localhost:6650")
-    admin_url = os.environ.get("PULSAR_ADMIN_URL", "http://localhost:8080")
+    service_url = os.environ.get("PULSAR_SERVICE_URL", "pulsar://broker:6650")
+    admin_url = os.environ.get("PULSAR_ADMIN_URL", "http://broker:8080")
     topic = "persistent://public/default/eventos-suscripcion"
     topic_path = "public/default/eventos-suscripcion"
     namespace = "public/default"
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     print("\n=== VERIFICACIÓN Y CONFIGURACIÓN DE PULSAR ===\n")
     
     # Variables de entorno o valores por defecto
-    admin_url = os.environ.get("PULSAR_ADMIN_URL", "http://localhost:8080")
+    admin_url = os.environ.get("PULSAR_ADMIN_URL", "http://broker:8080")
     namespace = "public/default"
     
     # Listar tópicos disponibles
