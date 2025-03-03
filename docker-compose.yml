@@ -192,17 +192,76 @@ services:
       - HTTP_HOST=0.0.0.0
       - PYTHONUNBUFFERED=1
 
-  # Consumer Demo (opcional)
-  consumer:
+  # gRPC Service
+  api-grpc:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pulsar-consumer-demo
-    command: bash -c "sleep 45 && python -m app.images_collector.infrastructure.messaging.demo"
+    container_name: images-api-grpc
+    command: bash -c "sleep 30 && python -m app.main --mode grpc"
     networks:
       - app-network
     depends_on:
       broker:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./:/app
+      - ./storage:/app/storage
+    environment:
+      - STORAGE_TYPE=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=images_db
+      - PULSAR_SERVICE_URL=pulsar://broker:6650
+      - PULSAR_ENABLED=true
+      - PULSAR_IMAGE_TOPIC=persistent://public/default/eventos-suscripcion
+      - GRPC_PORT=8001
+      - GRPC_HOST=127.0.0.1
+      - PYTHONUNBUFFERED=1
+
+  create-topic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulsar-consumer-demo
+    command: bash -c "sleep 25 && python -m app.images_collector.infrastructure.messaging.create_topic"
+    networks:
+      - app-network
+    depends_on:
+      broker:
+        condition: service_healthy
+      api-grpc:
+        condition: service_healthy
+      api-http:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+    environment:
+      - ADMIN_URL=http://broker:8080
+      - SERVICE_URL="pulsar://broker:6650"
+      - PYTHONUNBUFFERED=1
+    restart: on-failure
+
+  consumer-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulsar-consumer-demo
+    command: bash -c "sleep 45 && python -m app.images_collector.infrastructure.messaging.consumer-demo"
+    networks:
+      - app-network
+    depends_on:
+      broker:
+        condition: service_healthy
+      api-grpc:
+        condition: service_healthy
+      api-http:
         condition: service_healthy
     volumes:
       - ./:/app
