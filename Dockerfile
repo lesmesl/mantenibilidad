@@ -14,6 +14,8 @@ RUN poetry config virtualenvs.create false
 # Instalar dependencias
 RUN poetry install --no-interaction --no-ansi --no-dev
 
+RUN apt-get update && apt-get install -y curl
+
 # Copiar código fuente
 COPY . .
 
