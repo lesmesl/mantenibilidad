@@ -733,6 +733,53 @@ files = [
 ]
 
 [[package]]
+name = "pulsar-client"
+version = "3.6.0"
+description = "Apache Pulsar Python client library"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pulsar_client-3.6.0-cp310-cp310-macosx_13_0_universal2.whl", hash = "sha256:f478b5bb3880bb1eade7775f61db7c7d1f539f11044fc79332e4ff5881120b98"},
+    {file = "pulsar_client-3.6.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:46bbbb5dba3cce3e1bc276b0a1dd5ed3a902814715020e3e19d2d0268eee9769"},
+    {file = "pulsar_client-3.6.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ac358797517dde3152b76be036f275f079d51d88c864a636492124d8f93128cb"},
+    {file = "pulsar_client-3.6.0-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:06dfbc5675c736fa85c1a922c62f39408d239f4b9ed04dada37f417c953c0b0b"},
+    {file = "pulsar_client-3.6.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:d5736d33d2f476a6fe0c57800fd7eaea8aa86d7b2ba7836ab79fcc84e01e1575"},
+    {file = "pulsar_client-3.6.0-cp310-cp310-win_amd64.whl", hash = "sha256:18d48ddfe0d0718da05a9afae15a6b42feede9af9259c02f07e98341af3d649b"},
+    {file = "pulsar_client-3.6.0-cp311-cp311-macosx_13_0_universal2.whl", hash = "sha256:bbf0cf2c826e83338691fc871e5d4e864fa78790b1aa8a12df4549dd421d4169"},
+    {file = "pulsar_client-3.6.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bfdb700f5d355e1cb22c6060e870937d7f00eb20b28a6b685cc70cbeabb0f3a0"},
+    {file = "pulsar_client-3.6.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:109c1662784026ccc22937c15a9c6f4f22630af1bee92b7c22d718516079ffde"},
+    {file = "pulsar_client-3.6.0-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:b6ef10cc84db3f1813ac1074e6097818ec721d2a1047eaf0b99bf0a17171d5e4"},
+    {file = "pulsar_client-3.6.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:155baa18d9934fa0c3390e4185399d018c29ff101888a8fd04e2c5cefab31c26"},
+    {file = "pulsar_client-3.6.0-cp311-cp311-win_amd64.whl", hash = "sha256:3ff243e60b2e6556979039281bfb25d5de63ab2edb0a2dbb4b6ad06ae87f6d87"},
+    {file = "pulsar_client-3.6.0-cp312-cp312-macosx_13_0_universal2.whl", hash = "sha256:e5903102b708c228c5b52f0b7b56b473a3cc00a42ec1d657352d36cea70892cb"},
+    {file = "pulsar_client-3.6.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:192d7b1ec1824a2784fabc19fceb917d6ccdb4b1daf7d2bab4fcae783529c2ac"},
+    {file = "pulsar_client-3.6.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c67d95ca20e78d42229bdb5c01b18d6b3f0626773d93e15d03b7cef832496838"},
+    {file = "pulsar_client-3.6.0-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:8c9c1c2093e713469e42e561af6970c59e7ebe638ada823813ca5b3d89325002"},
+    {file = "pulsar_client-3.6.0-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:2982b6a90a63988dea3c83c9e6ce105f15ce2d79caf49c87787dd66ca3fbc9f0"},
+    {file = "pulsar_client-3.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:2a3b1d5198791fb284e729489c4f0598d0f475f439d64fa4527bbdf232ce0ae5"},
+    {file = "pulsar_client-3.6.0-cp313-cp313-macosx_13_0_universal2.whl", hash = "sha256:9f20da120a93f5e8b3c75ca95ab09cff29573d6256ebaa57df7240687f6b4b91"},
+    {file = "pulsar_client-3.6.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:83c2c2eb1b29bde71e3d103625cd99eac42bebcdd57ca4d014a4a4265ed0a4f0"},
+    {file = "pulsar_client-3.6.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c477a72e9461397345a607e72828ef9f16eb6a75fbbbe6569a2d1a27ff0f0c11"},
+    {file = "pulsar_client-3.6.0-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:3dece3e07dbdf726747fb15afe253bcca2d793d498dcc7ac5cdb8477a3d50f43"},
+    {file = "pulsar_client-3.6.0-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:5392e9ad5a1fd99f60dcf8908dd885f43d7ca32cb207a73e4af8e57f97e72a5f"},
+    {file = "pulsar_client-3.6.0-cp313-cp313-win_amd64.whl", hash = "sha256:6807d54ee7a2e6dd7c3b6916ab3da4dc185dd3868de7e59e501a8ca69d3ab43e"},
+    {file = "pulsar_client-3.6.0-cp39-cp39-macosx_13_0_universal2.whl", hash = "sha256:cf9be416e5fec3e3eebe64cdd07540a03ff977e69da70344164c59468ccf59b4"},
+    {file = "pulsar_client-3.6.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:de2dbbccfdb96f3849a5c67d90cd40aa8b633ee083db3359ef5f39040ee60022"},
+    {file = "pulsar_client-3.6.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9454a114b4821a5efec2c7187919b36cb3242c7218cc80bac1a84dbbd9dfc14c"},
+    {file = "pulsar_client-3.6.0-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:5e38a4d7848181c818861e46dac54f53f8dbebb5cec90766913dd16813f72d7a"},
+    {file = "pulsar_client-3.6.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:43dcd775dfd5da87ab112e2f03268de7651f2a6644eb2f5b09394cbe22b95d85"},
+    {file = "pulsar_client-3.6.0-cp39-cp39-win_amd64.whl", hash = "sha256:0de9048189d10ab3843963a287ac2ee47c74dc672ae7b425a0138bca2f63bb5c"},
+]
+
+[package.dependencies]
+certifi = "*"
+
+[package.extras]
+all = ["apache-bookkeeper-client (>=4.16.1)", "fastavro (>=1.9.2)", "grpcio (>=1.59.3)", "prometheus-client", "protobuf (>=3.6.1,<=3.20.3)", "ratelimit"]
+avro = ["fastavro (>=1.9.2)"]
+functions = ["apache-bookkeeper-client (>=4.16.1)", "grpcio (>=1.59.3)", "prometheus-client", "protobuf (>=3.6.1,<=3.20.3)", "ratelimit"]
+
+[[package]]
 name = "pydantic"
 version = "2.9.2"
 description = "Data validation using Python type hints"
@@ -1386,4 +1433,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "f94ecff01663d82060644765fa222afe3f2737e9f1fb305570d0e710208f82b0"
+content-hash = "800783a4f83f1db37076c208d76d18e8cc912dff65006ad63a9646af58080f86"

@@ -25,10 +25,15 @@ class Settings(BaseSettings):
     
     # PostgreSQL Settings
     postgres_host: str = "localhost"
-    postgres_port: int = 5440
+    postgres_port: int = 5450
     postgres_user: str = "postgres"
     postgres_password: str = "postgres"
     postgres_db: str = "images_db"
+    
+    # Pulsar Settings
+    pulsar_service_url: str = "pulsar://localhost:6650"
+    pulsar_enabled: bool = True
+    pulsar_image_topic: str = "persistent://public/default/eventos-suscripcion"
     
     model_config = SettingsConfigDict(
         env_file=".env", 

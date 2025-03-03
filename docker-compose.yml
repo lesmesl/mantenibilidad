@@ -1,0 +1,253 @@
+version: '3'
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  # Start zookeeper
+  zookeeper:
+    image: apachepulsar/pulsar:latest
+    container_name: zookeeper
+    restart: on-failure
+    networks:
+      - app-network
+    volumes:
+      - ./data/zookeeper:/pulsar/data/zookeeper
+    environment:
+      - metadataStoreUrl=zk:zookeeper:2181
+    command: >
+      bash -c "bin/apply-config-from-env.py conf/zookeeper.conf && \
+             bin/generate-zookeeper-config.sh conf/zookeeper.conf && \
+             exec bin/pulsar zookeeper"
+    healthcheck:
+      test: ["CMD", "bin/pulsar-zookeeper-ruok.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # Init cluster metadata
+  pulsar-init:
+    container_name: pulsar-init
+    hostname: pulsar-init
+    image: apachepulsar/pulsar:latest
+    networks:
+      - app-network
+    command: [
+      "bash",
+      "-c",
+      "bin/pulsar initialize-cluster-metadata \
+      --cluster cluster-a \
+      --zookeeper zookeeper:2181 \
+      --configuration-store zookeeper:2181 \
+      --web-service-url http://broker:8080 \
+      --broker-service-url pulsar://broker:6650"
+    ]
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+  # Start bookie
+  bookie:
+    image: apachepulsar/pulsar:latest
+    container_name: bookie
+    restart: on-failure
+    networks:
+      - app-network
+    environment:
+      - clusterName=cluster-a
+      - zkServers=zookeeper:2181
+      - metadataServiceUri=metadata-store:zk:zookeeper:2181
+      - advertisedAddress=bookie 
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      pulsar-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./data/bookkeeper:/pulsar/data/bookkeeper
+    command: bash -c "bin/apply-config-from-env.py conf/bookkeeper.conf && exec bin/pulsar bookie"
+    healthcheck:
+      test: ["CMD", "bin/bookkeeper", "shell", "simpletest"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  # Start broker
+  broker:
+    image: apachepulsar/pulsar:latest
+    container_name: broker
+    hostname: broker
+    restart: on-failure
+    networks:
+      - app-network
+    environment:
+      - metadataStoreUrl=zk:zookeeper:2181
+      - zookeeperServers=zookeeper:2181
+      - clusterName=cluster-a
+      - managedLedgerDefaultEnsembleSize=1
+      - managedLedgerDefaultWriteQuorum=1
+      - managedLedgerDefaultAckQuorum=1
+      - advertisedAddress=broker
+      - webServiceAdvertisedAddress=broker
+      - advertisedListeners=external:pulsar://broker:6650
+      - allowAutoTopicCreation=true
+      - allowAutoTopicCreationType=partitioned
+      - defaultNumPartitions=1
+      - brokerDeleteInactiveTopicsEnabled=false
+      - managedLedgerMaxEntriesPerLedger=50000
+      - managedLedgerMinLedgerRolloverTimeMinutes=10
+      - managedLedgerCursorMaxEntriesPerLedger=50000
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      bookie:
+        condition: service_started
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/admin/v2/clusters/cluster-a"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    # Simplifica el comando para evitar problemas de conexión interna
+    command: >
+      bash -c "bin/apply-config-from-env.py conf/broker.conf && exec bin/pulsar broker"           
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: always
+    networks:
+      - app-network
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=images_db
+    ports:
+      - "5450:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  # HTTP API Service
+  api-http:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: images-api-http
+    command: bash -c "sleep 30 && python -m app.main --mode http"
+    networks:
+      - app-network
+    depends_on:
+      broker:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - ./storage:/app/storage
+    environment:
+      - STORAGE_TYPE=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=images_db
+      - PULSAR_SERVICE_URL=pulsar://broker:6650
+      - PULSAR_ENABLED=true
+      - PULSAR_IMAGE_TOPIC=persistent://public/default/eventos-suscripcion
+      - HTTP_PORT=8000
+      - HTTP_HOST=0.0.0.0
+      - PYTHONUNBUFFERED=1
+
+  # gRPC Service
+  api-grpc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: images-api-grpc
+    command: bash -c "sleep 30 && python -m app.main --mode grpc"
+    networks:
+      - app-network
+    depends_on:
+      broker:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./:/app
+      - ./storage:/app/storage
+    environment:
+      - STORAGE_TYPE=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=images_db
+      - PULSAR_SERVICE_URL=pulsar://broker:6650
+      - PULSAR_ENABLED=true
+      - PULSAR_IMAGE_TOPIC=persistent://public/default/eventos-suscripcion
+      - GRPC_PORT=8001
+      - GRPC_HOST=0.0.0.0
+      - PYTHONUNBUFFERED=1
+
+  # Consumer Demo (opcional)
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulsar-consumer-demo
+    command: bash -c "sleep 45 && python -m app.images_collector.infrastructure.messaging.demo"
+    networks:
+      - app-network
+    depends_on:
+      broker:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+    environment:
+      - PULSAR_SERVICE_URL=pulsar://broker:6650
+      - PYTHONUNBUFFERED=1
+    restart: on-failure
+
+  pulsar-express:
+    image: bbonnin/pulsar-express
+    container_name: pulsar-express
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    environment:
+      - SERVICE_URL=http://broker:8080
+      - REFRESH_INTERVAL=5000  # Actualiza cada 5s para ver cambios más rápido
+    depends_on:
+      broker:
+        condition: service_healthy
+    restart: on-failure
+
+  pulsar-init-topics:
+    image: apachepulsar/pulsar:latest
+    container_name: pulsar-init-topics
+    networks:
+      - app-network
+    depends_on:
+      broker:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+    volumes:
+      - ./init-topics.sh:/pulsar/init-topics.sh
+    command: ["bash", "/pulsar/init-topics.sh"]
+    restart: "no"  # Solo se ejecutará una vez
+          
