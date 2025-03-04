@@ -245,6 +245,46 @@ El sistema gRPC funciona mediante:
 
 5. **Escalabilidad**: La arquitectura permite añadir nuevos adaptadores (como nuevos protocolos o fuentes de datos) sin modificar el núcleo.
 
+## Evaluación de Requisitos
+
+### 1. Comunicación basada en eventos ✅
+La implementación utiliza Apache Pulsar para la comunicación asíncrona:
+
+```python
+event_data = {
+    "event_type": "image_created",
+    "image": {
+        "id": result_dto.id,
+        # otros campos...
+    }
+}
+await self.message_publisher.publish(settings.pulsar_image_topic, event_data)
+```
+
+### 2. Definición de eventos ✅
+Utilizo eventos de integración que notifican sobre cambios importantes sin transferir toda la carga de estado:
+
+```python
+event_data = {
+    "event_type": "image_created",  # Tipo de evento claro
+    "image": {                      # Datos relevantes sin sobrecarga
+        "id": result_dto.id,
+        "url": str(result_dto.url),
+        # otros campos esenciales...
+    }
+}
+```
+
+### 3. Patrones de almacenamiento ✅
+Implementado un modelo clásico CRUD a través de los repositorios:
+
+```python
+async def save(self, image: Image) -> Image:
+    # Lógica para guardar
+async def get_by_id(self, image_id: str) -> Optional[Image]:
+    # Lógica para recuperar
+```
+
 ## Conclusión
 
 El proyecto implementa exitosamente los principios de DDD y Arquitectura Hexagonal. La separación clara entre el dominio de negocio y los detalles de implementación hace que el sistema sea flexible, mantenible y adaptable a cambios tecnológicos futuros. El uso de gRPC como protocolo alternativo a HTTP demuestra cómo los adaptadores pueden ser intercambiados sin afectar la lógica central del sistema.
